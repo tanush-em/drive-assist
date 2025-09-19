@@ -156,9 +156,9 @@ def realtime_analysis_page():
             'RPM': rpm,
             'Load': load,
             'BaseFuel': base_fuel,
-            'BaseIgnitionTiming': ignition_timing,
-            'LambdaSensor': lambda_sensor,
-            'BatteryVolt': battery_volt,
+            'IgnitionTiming': ignition_timing,
+            'LambdaSensor1': lambda_sensor,
+            'BatteryVoltage': battery_volt,
             'MAPSource': map_source
         }
 

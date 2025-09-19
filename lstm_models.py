@@ -8,6 +8,7 @@ from tensorflow.keras.layers import LSTM, Dense, Dropout, Input, TimeDistributed
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from sklearn.preprocessing import LabelEncoder
+
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -51,11 +52,13 @@ class LSTMDriverClassifier:
             Dense(3, activation='softmax')  # Accelerating, Braking, Cruising
         ])
 
+        
         model.compile(
             optimizer=Adam(learning_rate=0.001),
             loss='categorical_crossentropy',
             metrics=['accuracy']
         )
+
 
         self.model = model
         return model

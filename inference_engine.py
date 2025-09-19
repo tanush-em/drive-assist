@@ -54,8 +54,8 @@ class DriverStyleInferenceEngine:
             df = self.preprocessor.synchronize_timestamps(df)
 
             # Extract features
-            features = df[['RPM', 'Load', 'BaseFuel', 'BaseIgnitionTiming', 
-                          'LambdaSensor', 'BatteryVolt', 'MAPSource']].values
+            features = df[['RPM', 'Load', 'BaseFuel', 'IgnitionTiming', 
+                          'LambdaSensor1', 'BatteryVoltage', 'MAPSource']].values
 
             # Handle missing values
             features = np.nan_to_num(features, nan=0.0)
@@ -167,7 +167,7 @@ class DriverStyleInferenceEngine:
                 'rpm': ecu_data.get('RPM', 0),
                 'load': ecu_data.get('Load', 0),
                 'fuel': ecu_data.get('BaseFuel', 0),
-                'ignition_timing': ecu_data.get('BaseIgnitionTiming', 0)
+                'ignition_timing': ecu_data.get('IgnitionTiming', 0)
             }
             recommendations = self.generate_tuning_recommendations(
                 style_prediction['style'], current_params
@@ -200,11 +200,11 @@ def main():
     sample_ecu_data = {
         'Timestamp': '54:58.4',
         'BaseFuel': 355,
-        'BaseIgnitionTiming': 913,
-        'LambdaSensor': 1143,
+        'IgnitionTiming': 913,
+        'LambdaSensor1': 1143,
         'RPM': 1500,
         'Load': 13216,
-        'BatteryVolt': 12.6,
+        'BatteryVoltage': 12.6,
         'MAPSource': 87
     }
 

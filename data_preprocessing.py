@@ -20,12 +20,11 @@ class ECUDataPreprocessor:
         logger.info("Removing faulty sensor readings...")
         initial_shape = df.shape
 
-        # Remove rows where critical sensors have impossible values
+        # Only remove rows with clearly impossible values, be more lenient
         df = df[df['RPM'] >= 0]  # RPM cannot be negative
-        df = df[df['RPM'] <= 8000]  # Reasonable max RPM
-        df = df[df['Load'] >= 0]  # Load cannot be negative
-        df = df[df['BatteryVolt'] > 10]  # Battery voltage should be reasonable
-        df = df[df['BatteryVolt'] < 16]
+        df = df[df['RPM'] <= 10000]  # More generous max RPM
+        # Don't filter Load as it might have different scales
+        # Don't filter BatteryVoltage as it might be missing or in different units
 
         logger.info(f"Removed {initial_shape[0] - df.shape[0]} faulty readings")
         return df
@@ -36,8 +35,20 @@ class ECUDataPreprocessor:
 
         # Convert timestamp to seconds from start
         df = df.copy()
-        df['timestamp_seconds'] = pd.to_datetime(df['Timestamp'], format='%M:%S.%f').dt.second + \
-                                 pd.to_datetime(df['Timestamp'], format='%M:%S.%f').dt.microsecond / 1e6
+        try:
+            # Try different timestamp formats
+            if ':' in str(df['Timestamp'].iloc[0]):
+                # Format like "07:54:58.422" 
+                df['timestamp_seconds'] = pd.to_datetime(df['Timestamp'], format='%H:%M:%S.%f').dt.hour * 3600 + \
+                                         pd.to_datetime(df['Timestamp'], format='%H:%M:%S.%f').dt.minute * 60 + \
+                                         pd.to_datetime(df['Timestamp'], format='%H:%M:%S.%f').dt.second + \
+                                         pd.to_datetime(df['Timestamp'], format='%H:%M:%S.%f').dt.microsecond / 1e6
+            else:
+                # Fallback: use row index as time
+                df['timestamp_seconds'] = df.index * 0.1  # Assume 10 Hz sampling
+        except:
+            logger.warning("Could not parse timestamps, using row index")
+            df['timestamp_seconds'] = df.index * 0.1  # Assume 10 Hz sampling
 
         # Sort by timestamp
         df = df.sort_values('timestamp_seconds')
@@ -78,6 +89,8 @@ class ECUDataPreprocessor:
         logger.info(f"Aggregating features over {interval_seconds}s intervals...")
 
         df = df.copy()
+        # Handle NaN values in timestamp_seconds
+        df = df.dropna(subset=['timestamp_seconds'])
         df['interval'] = (df['timestamp_seconds'] // interval_seconds).astype(int)
 
         # Aggregate features per interval
@@ -85,13 +98,17 @@ class ECUDataPreprocessor:
             'RPM': ['mean', 'std', 'max', 'min'],
             'Load': ['mean', 'std'],
             'BaseFuel': ['mean', 'std'],
-            'BaseIgnitionTiming': ['mean'],
-            'LambdaSensor': ['mean'],
+            'IgnitionTiming': ['mean'],
+            'LambdaSensor1': ['mean'],
             'Event': lambda x: x.mode().iloc[0] if len(x.mode()) > 0 else 'Cruising'
         }).reset_index()
 
         # Flatten column names
         agg_features.columns = ['_'.join(col).strip() if col[1] else col[0] for col in agg_features.columns.values]
+        
+        # Rename the Event column back to a simple name
+        if 'Event_<lambda>' in agg_features.columns:
+            agg_features = agg_features.rename(columns={'Event_<lambda>': 'Event'})
 
         return agg_features
 
@@ -134,15 +151,26 @@ class ECUDataPreprocessor:
             'RPM_mean', 'RPM_std', 'RPM_max', 'RPM_min',
             'Load_mean', 'Load_std',
             'BaseFuel_mean', 'BaseFuel_std',
-            'BaseIgnitionTiming_mean',
-            'LambdaSensor_mean'
+            'IgnitionTiming_mean',
+            'LambdaSensor1_mean'
         ]
 
         # Handle missing values
-        df_clean = df[numerical_features].fillna(method='forward').fillna(method='backward')
+        logger.info(f"Available columns in aggregated data: {df.columns.tolist()}")
+        logger.info(f"Looking for features: {numerical_features}")
+        
+        # Check which features actually exist
+        available_features = [col for col in numerical_features if col in df.columns]
+        logger.info(f"Found features: {available_features}")
+        
+        if not available_features:
+            logger.error("No features found! Check column names.")
+            return df.iloc[:0]  # Return empty dataframe
+            
+        df_clean = df[available_features].ffill().bfill()
 
         # Store feature columns
-        self.feature_columns = numerical_features
+        self.feature_columns = available_features
 
         return df_clean
 

@@ -163,8 +163,8 @@ def main():
     # Initialize pipeline
     pipeline = DriverStyleClassificationPipeline()
 
-    # Run training (using sample data for demonstration)
-    results = pipeline.full_pipeline_training('sample_ecu_data.csv')
+    # Run training (using actual labeled data)
+    results = pipeline.full_pipeline_training('data/labeled_20180713-home2mimos.csv')
 
     print("Training completed!")
     print(f"Detected driving patterns: {results['patterns']}")
