@@ -53,9 +53,40 @@ class DriverStyleInferenceEngine:
             df = self.preprocessor.remove_faulty_readings(df)
             df = self.preprocessor.synchronize_timestamps(df)
 
-            # Extract features
-            features = df[['RPM', 'Load', 'BaseFuel', 'IgnitionTiming', 
-                          'LambdaSensor1', 'BatteryVoltage', 'MAPSource']].values
+            # For real-time data, we need to simulate the aggregated features
+            # since we only have one data point
+            aggregated_features = {
+                'RPM_mean': df['RPM'].iloc[0],
+                'RPM_std': 0.0,  # No variation in single point
+                'RPM_max': df['RPM'].iloc[0],
+                'RPM_min': df['RPM'].iloc[0],
+                'Load_mean': df['Load'].iloc[0],
+                'Load_std': 0.0,
+                'BaseFuel_mean': df['BaseFuel'].iloc[0],
+                'BaseFuel_std': 0.0,
+                'IgnitionTiming_mean': df['IgnitionTiming'].iloc[0],
+                'LambdaSensor1_mean': df['LambdaSensor1'].iloc[0]
+            }
+
+            # Convert to DataFrame and then to features array
+            agg_df = pd.DataFrame([aggregated_features])
+            
+            # Get the features that the preprocessor expects
+            if hasattr(self.preprocessor, 'feature_columns') and self.preprocessor.feature_columns:
+                feature_cols = self.preprocessor.feature_columns
+            else:
+                # Use the expected feature columns from training
+                feature_cols = [
+                    'RPM_mean', 'RPM_std', 'RPM_max', 'RPM_min',
+                    'Load_mean', 'Load_std',
+                    'BaseFuel_mean', 'BaseFuel_std',
+                    'IgnitionTiming_mean',
+                    'LambdaSensor1_mean'
+                ]
+            
+            # Extract only the features that exist and are expected
+            available_features = [col for col in feature_cols if col in agg_df.columns]
+            features = agg_df[available_features].values
 
             # Handle missing values
             features = np.nan_to_num(features, nan=0.0)
