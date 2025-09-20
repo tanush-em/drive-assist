@@ -14,7 +14,6 @@ A comprehensive machine learning system that analyzes driver behavior from ECU (
 - [Project Structure](#project-structure)
 - [Data Format](#data-format)
 - [API Reference](#api-reference)
-- [Contributing](#contributing)
 - [License](#license)
 
 ## 🎯 Overview
@@ -383,51 +382,8 @@ features, patterns, processed_df = preprocessor.fit_transform(df)
 - LSTM layers: 128 → 64 → 32 units
 - Dense layers: 32 → 16 → 3 units (softmax)
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Setup
-
-1. Install development dependencies:
-   ```bash
-   pip install -r requirements-dev.txt
-   ```
-
-2. Run tests:
-   ```bash
-   python -m pytest tests/
-   ```
-
-3. Format code:
-   ```bash
-   black *.py
-   flake8 *.py
-   ```
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
-
-- ECU data collection and labeling methodology
-- LSTM architecture design principles
-- Streamlit dashboard framework
-- TensorFlow/Keras machine learning platform
-
-## 📞 Support
-
-For questions and support:
-
-- Create an issue in the GitHub repository
-- Contact: [your.email@example.com]
-- Documentation: [Link to detailed docs]
-
 ---
-
-**Note**: This system is designed for educational and research purposes. Always consult with automotive professionals before making ECU modifications to your vehicle.
