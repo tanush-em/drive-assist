@@ -100,7 +100,7 @@ class LSTMDriverClassifier:
         )
 
         model_checkpoint = ModelCheckpoint(
-            'best_model.h5',
+            'models/best_model.h5',
             monitor='val_loss',
             save_best_only=True
         )

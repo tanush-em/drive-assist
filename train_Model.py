@@ -1,5 +1,3 @@
-
-# train_model.py
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -95,7 +93,7 @@ class DriverStyleClassificationPipeline:
         history = self.stage1_model.train_model(X_train, y_train, X_val, y_val)
 
         # Save model
-        self.stage1_model.save_model('stage1_model.h5')
+        self.stage1_model.save_model('models/stage1_model.h5')
 
         return history
 
@@ -127,7 +125,7 @@ class DriverStyleClassificationPipeline:
         history = self.stage2_model.train_model(X_train, y_train, X_val, y_val)
 
         # Save model
-        self.stage2_model.save_model('stage2_model.h5')
+        self.stage2_model.save_model('models/stage2_model.h5')
 
         return history
 

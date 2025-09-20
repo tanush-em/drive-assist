@@ -22,7 +22,7 @@ class DriverStyleInferenceEngine:
         self.sequence_buffer = []
         self.sequence_length = 10
 
-    def load_models(self, stage1_path='stage1_model.h5', stage2_path='stage2_model.h5', preprocessor_path='preprocessor.pkl'):
+    def load_models(self, stage1_path='models/stage1_model.h5', stage2_path='models/stage2_model.h5', preprocessor_path='preprocessor.pkl'):
         """Load trained models and preprocessor"""
         logger.info("Loading trained models...")
 
