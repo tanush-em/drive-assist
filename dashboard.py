@@ -211,7 +211,14 @@ def realtime_analysis_page():
 
         # Process data
         with st.spinner("Analyzing driving style..."):
-            result = st.session_state.inference_engine.process_realtime_data(ecu_data)
+            try:
+                result = st.session_state.inference_engine.process_realtime_data(ecu_data)
+                if result is None:
+                    st.error("❌ Failed to process ECU data. Please check your input values and try again.")
+                    return
+            except Exception as e:
+                st.error(f"❌ Error processing data: {str(e)}")
+                return
             
         # Show sequence progress
         if result:
@@ -248,10 +255,14 @@ def realtime_analysis_page():
             else:
                 st.session_state.driving_history['styles'].append('Unknown')
 
-            # Keep only last 100 records
+            # Keep only last 100 records (more efficient)
+            max_records = 100
             for key in st.session_state.driving_history:
-                if len(st.session_state.driving_history[key]) > 100:
-                    st.session_state.driving_history[key] = st.session_state.driving_history[key][-100:]
+                history_list = st.session_state.driving_history[key]
+                if len(history_list) > max_records:
+                    # Use deque-like behavior to avoid creating new lists
+                    excess = len(history_list) - max_records
+                    del history_list[:excess]
 
             # Display results
             display_analysis_results(result)

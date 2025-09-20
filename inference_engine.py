@@ -6,6 +6,11 @@ import tensorflow as tf
 import joblib
 from datetime import datetime
 import logging
+import warnings
+
+# Suppress specific sklearn warnings about feature names
+warnings.filterwarnings("ignore", message="X does not have valid feature names")
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
 
 from data_preprocessing import ECUDataPreprocessor
 from lstm_models import LSTMDriverClassifier, TuningMapRecommender
@@ -93,7 +98,9 @@ class DriverStyleInferenceEngine:
 
             # Scale features
             if hasattr(self.preprocessor, 'scaler'):
-                features = self.preprocessor.scaler.transform(features)
+                # Convert to DataFrame with proper feature names to avoid sklearn warning
+                features_df = pd.DataFrame(features, columns=available_features)
+                features = self.preprocessor.scaler.transform(features_df)
 
             return features
 
@@ -115,9 +122,9 @@ class DriverStyleInferenceEngine:
             # Add to sequence buffer
             self.sequence_buffer.append(features[0])
 
-            # Keep only the last sequence_length items
+            # Keep only the last sequence_length items (more efficient)
             if len(self.sequence_buffer) > self.sequence_length:
-                self.sequence_buffer.pop(0)
+                self.sequence_buffer = self.sequence_buffer[-self.sequence_length:]
 
             # Make prediction only if we have enough data
             if len(self.sequence_buffer) == self.sequence_length:

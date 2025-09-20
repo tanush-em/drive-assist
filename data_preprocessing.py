@@ -35,19 +35,44 @@ class ECUDataPreprocessor:
 
         # Convert timestamp to seconds from start
         df = df.copy()
-        try:
-            # Try different timestamp formats
-            if ':' in str(df['Timestamp'].iloc[0]):
-                # Format like "07:54:58.422" 
-                df['timestamp_seconds'] = pd.to_datetime(df['Timestamp'], format='%H:%M:%S.%f').dt.hour * 3600 + \
-                                         pd.to_datetime(df['Timestamp'], format='%H:%M:%S.%f').dt.minute * 60 + \
-                                         pd.to_datetime(df['Timestamp'], format='%H:%M:%S.%f').dt.second + \
-                                         pd.to_datetime(df['Timestamp'], format='%H:%M:%S.%f').dt.microsecond / 1e6
-            else:
-                # Fallback: use row index as time
-                df['timestamp_seconds'] = df.index * 0.1  # Assume 10 Hz sampling
-        except:
-            logger.warning("Could not parse timestamps, using row index")
+        
+        # Try multiple timestamp formats
+        timestamp_formats = [
+            '%H:%M:%S.%f',  # "07:54:58.422"
+            '%M:%S.%f',     # "54:58.4" 
+            '%H:%M:%S',     # "07:54:58"
+            '%M:%S'         # "54:58"
+        ]
+        
+        parsed_successfully = False
+        
+        for fmt in timestamp_formats:
+            try:
+                if ':' in str(df['Timestamp'].iloc[0]):
+                    parsed_time = pd.to_datetime(df['Timestamp'], format=fmt, errors='coerce')
+                    
+                    # Check if parsing was successful (no NaT values)
+                    if not parsed_time.isna().all():
+                        if fmt.startswith('%H'):
+                            # Full time format
+                            df['timestamp_seconds'] = (parsed_time.dt.hour * 3600 + 
+                                                     parsed_time.dt.minute * 60 + 
+                                                     parsed_time.dt.second + 
+                                                     parsed_time.dt.microsecond / 1e6)
+                        else:
+                            # Minutes:seconds format
+                            df['timestamp_seconds'] = (parsed_time.dt.minute * 60 + 
+                                                     parsed_time.dt.second + 
+                                                     parsed_time.dt.microsecond / 1e6)
+                        parsed_successfully = True
+                        logger.info(f"Successfully parsed timestamps using format: {fmt}")
+                        break
+            except (ValueError, AttributeError):
+                continue
+        
+        # Fallback to row index if all parsing attempts failed
+        if not parsed_successfully:
+            logger.warning("Could not parse timestamps with any known format, using row index")
             df['timestamp_seconds'] = df.index * 0.1  # Assume 10 Hz sampling
 
         # Sort by timestamp
