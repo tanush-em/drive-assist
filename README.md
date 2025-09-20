@@ -104,7 +104,7 @@ This project implements an intelligent driver analysis system that:
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.12
 - pip package manager
 - Git (for cloning the repository)
 
@@ -114,7 +114,7 @@ This project implements an intelligent driver analysis system that:
 
 1. **Clone the repository**:
    ```cmd
-   git clone https://github.com/yourusername/FYP-vishnu.git
+   git clone https://github.com/tanush_em/FYP-vishnu.git
    cd FYP-vishnu
    ```
 
